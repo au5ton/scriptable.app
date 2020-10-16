@@ -1,6 +1,6 @@
 // Variables used by Scriptable.
 // These must be at the very top of the file. Do not edit.
-// icon-color: deep-brown; icon-glyph: magic;
+// icon-color: orange; icon-glyph: file-video;
 module.exports = class PlexAPI {
     constructor(plexHost, plexToken) {
         this.plexHost = plexHost; // 123.123.123.123:45678
