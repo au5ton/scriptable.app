@@ -12,9 +12,4 @@ mc.example.com:25565
 
 ## Previews
 
-<img src="previews/preview_1.png" width="150">
-<img src="previews/preview_2.png" width="150">
-<br />
-<img src="previews/preview_3.png" width="250">
-
-![in_game](previews/in_game.png)
+![preview](preview_all.png)
