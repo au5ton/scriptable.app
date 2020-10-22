@@ -89,6 +89,8 @@ function createWidget(computedValues) {
   let name = header.addText(serverName);
   name.font = Font.boldRoundedSystemFont(16);
   name.textColor = plexGreyColor;
+  name.lineLimit = 1;
+  name.minimumScaleFactor = 0.5;
 
   // spacer
   w.addSpacer(null);
