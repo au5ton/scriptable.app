@@ -4,9 +4,25 @@ const path = require('path');
 const shell = require('shelljs');
 
 function install(destination) {
-  //shell.cp('-R', 'scriptable/', destination);
-  console.log('does exist?', fs.existsSync(destination));
-  console.log(shell.ls(destination));
+  // check for existence before attempting a copy
+  if(fs.existsSync(destination)) {
+    console.log(`cp -R scriptable/* ${destination}`);
+    shell.cp('-R', 'scriptable/*', destination);
+  }
+  else {
+    console.log(`
+An iCloud Drive directory couldn't be found where it was expected to be:
+
+Expected location:
+\t${destination}
+
+If you're on Windows, make sure that iCloud for Windows has been installed.
+https://support.apple.com/en-us/HT204283
+
+If you're on macOS, make sure you have iCloud Drive enabled and have macOS Sierra (10.12) or greater installed.
+https://support.apple.com/en-us/HT204025
+`)
+  }
 }
 
 switch(process.platform) {
