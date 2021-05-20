@@ -1,0 +1,16 @@
+{
+  "name": "scriptable",
+  "version": "1.0.0",
+  "scripts": {
+    "icloud": "node deploy.js"
+  },
+  "eslintConfig": {
+    "extends": "@scriptable-ios"
+  },
+  "devDependencies": {
+    "@scriptable-ios/eslint-config": "latest",
+    "@types/scriptable-ios": "latest",
+    "eslint": "latest",
+    "shelljs": "^0.8.4"
+  }
+}
