@@ -12,19 +12,19 @@ const useStyles = makeStyles((theme: Theme) =>
     createStyles({
         root: {
             display: 'flex',
-            maxWidth: 280,
-            minWidth: 280,
+            maxWidth: 320,
+            minWidth: 320,
             height: 150,
             margin: theme.spacing(2),
             marginLeft: theme.spacing(1),
             transition: "all 300ms ease-in-out",
-            border: `3px transparent solid`
+            outline: `3px transparent solid`
         },
         rootIsSelected: {
             transform: "transform(1.1)",
             boxShadow: theme.shadows[5],
             background: fade(theme.palette.primary.main, 0.1),
-            border: `3px ${theme.palette.primary.main} solid`
+            outline: `3px ${theme.palette.primary.main} solid`
         },
         details: {
             display: 'flex',
@@ -36,7 +36,8 @@ const useStyles = makeStyles((theme: Theme) =>
         cover: {
             width: 150,
             backgroundSize: "cover",
-            backgroundPositionX: -14
+            backgroundPositionX: 0, // was -14
+            flexShrink: 0
         },
         controls: {
             display: 'flex',
@@ -63,7 +64,8 @@ export const WidgetModuleCard = ({ widgetModule, isSelected, onSelect }: Props) 
     return (
         <Card className={clsx({ [classes.root]: true, [classes.rootIsSelected]: isSelected })} onClick={(event) => {
             // Scroll into view
-            event.currentTarget.parentElement.scrollLeft = event.currentTarget.offsetLeft - 16;
+            // (this is broken)
+            //event.currentTarget.parentElement.scrollLeft = event.currentTarget.offsetLeft - 16;
             onSelect();
         }}>
             <div className={classes.details}>
