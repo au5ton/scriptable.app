@@ -18,13 +18,14 @@ const useStyles = makeStyles((theme: Theme) =>
             margin: theme.spacing(2),
             marginLeft: theme.spacing(1),
             transition: "all 300ms ease-in-out",
-            outline: `3px transparent solid`
+            outline: `3px transparent solid`,
+            cursor: 'pointer',
         },
         rootIsSelected: {
             transform: "transform(1.1)",
             boxShadow: theme.shadows[5],
             background: fade(theme.palette.primary.main, 0.1),
-            outline: `3px ${theme.palette.primary.main} solid`
+            outline: `3px ${theme.palette.primary.main} solid`,
         },
         details: {
             display: 'flex',
@@ -32,6 +33,11 @@ const useStyles = makeStyles((theme: Theme) =>
         },
         content: {
             flex: '1 0 auto',
+            paddingBottom: '8px',
+        },
+        cardTitle: {
+            lineHeight: 1.1,
+            marginBottom: '0.75rem',
         },
         cover: {
             width: 150,
@@ -70,18 +76,18 @@ export const WidgetModuleCard = ({ widgetModule, isSelected, onSelect }: Props) 
         }}>
             <div className={classes.details}>
                 <CardContent className={classes.content}>
-                    <Typography component="h6" variant="h6">
+                    <Typography className={classes.cardTitle} component="h6" variant="h6">
                         {widgetModule.meta.name}
                     </Typography>
                     <Typography variant="body2" color="textSecondary">
                         {widgetModule.meta.description}
                     </Typography>
                 </CardContent>
-                <div className={classes.controls}>
+                {/* <div className={classes.controls}>
                     <Button disabled={isSelected} color="primary" onClick={onSelect} variant={"text"}>
                         {isSelected ? "Selected" : "Select"}
                     </Button>
-                </div>
+                </div> */}
             </div>
             <CardMedia
                 className={classes.cover}

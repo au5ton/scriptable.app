@@ -157,7 +157,4 @@ async function getPlexData(host: string, token: string) {
   }
 }
 
-
-
 module.exports = widgetModule;
-

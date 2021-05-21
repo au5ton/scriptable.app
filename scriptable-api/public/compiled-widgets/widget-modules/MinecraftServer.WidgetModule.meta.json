@@ -1,0 +1,10 @@
+{
+    "name": "Minecraft Server",
+    "description": "View MOTD, players online, and other info.",
+    "paramLabel": "IP and port of your Minecraft server",
+    "paramPlaceHolder": "192.168.1.69:25565",
+    "loaderArgs": {
+        "iconColor": "deep-green",
+        "iconGlyph": "gamepad"
+    }
+}

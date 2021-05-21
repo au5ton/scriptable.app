@@ -1,5 +1,23 @@
 (function () {
 
+    /** makes debugging JSON responses easier when something goes wrong */
+    async function getJSON(path) {
+        const req = new Request(path);
+        req.headers = {
+            Accept: 'application/json'
+        };
+        let res = '';
+        try {
+            res = await req.loadString();
+            return JSON.parse(res);
+        }
+        catch (err) {
+            throw `Failed to parse JSON.\n` +
+                `- URL: ${req.url}\n` +
+                `- Body:\n${res}`;
+        }
+    }
+
     /**
      * Utility class for iteracting with the Plex Media Server API and Plex.tv API
      */
@@ -11,20 +29,7 @@
         }
         /** GET Request wrapper for your Plex server */
         async get(path) {
-            const req = new Request(`http://${this.plexHost}${path}?X-Plex-Token=${this.plexToken}`);
-            req.headers = {
-                Accept: 'application/json'
-            };
-            let res = '';
-            try {
-                res = await req.loadString();
-                return JSON.parse(res);
-            }
-            catch (err) {
-                throw `Failed to parse JSON.\n` +
-                    `- URL: ${req.url}\n` +
-                    `- Body:\n${res}`;
-            }
+            return await getJSON(`http://${this.plexHost}${path}?X-Plex-Token=${this.plexToken}`);
         }
         /** GET Request wrapper for your Plex server */
         async getData(path) {
