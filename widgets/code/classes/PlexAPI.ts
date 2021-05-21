@@ -14,9 +14,18 @@ export class PlexAPI {
   async get(path) {
       const req = new Request(`http://${this.plexHost}${path}?X-Plex-Token=${this.plexToken}`);
       req.headers = {
-        'Accept': 'application/json'
+        Accept: 'application/json'
       };
-      return await req.loadJSON();
+      let res = '';
+      try {
+        res = await req.loadString();
+        return JSON.parse(res);
+      }
+      catch(err) {
+        throw `Failed to parse JSON.\n`+
+          `- URL: ${req.url}\n` +
+          `- Body:\n${res}`;
+      }
   }
   /** GET Request wrapper for your Plex server */
   async getData(path) {
@@ -27,7 +36,7 @@ export class PlexAPI {
   async getPlexTV(path) {
       const req = new Request(`https://plex.tv${path}?X-Plex-Token=${this.plexToken}`);
       req.headers = {
-        'Accept': 'application/json'
+        Accept: 'application/json'
       };
       return await req.loadJSON();
   }

@@ -85,7 +85,7 @@ const widgetModule: IWidgetModule = {
 
 const parseWidgetParameter = (param: string) => {
   // handles: <token>@<host> || @<host> || <host>
-  const paramParts = param.toLowerCase().replace(/ /g, "").split("@")
+  const paramParts = param.replace(/ /g, '').split('@')
   let token: string = '';
   let host: string = '';
   switch (paramParts.length) {
