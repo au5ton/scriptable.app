@@ -1,38 +1,5 @@
 (function () {
 
-    const addFlexSpacer = ({ to }) => {
-        // @ts-ignore
-        to.addSpacer();
-    };
-
-    const SimpleTextWidget = (pretitle, title, subtitle, color) => {
-        let w = new ListWidget();
-        w.backgroundColor = new Color(color, 1);
-        let preTxt = w.addText(pretitle);
-        preTxt.textColor = Color.white();
-        preTxt.textOpacity = 0.8;
-        preTxt.font = Font.systemFont(10);
-        w.addSpacer(5);
-        let titleTxt = w.addText(title);
-        titleTxt.textColor = Color.white();
-        titleTxt.font = Font.systemFont(16);
-        w.addSpacer(5);
-        let subTxt = w.addText(subtitle);
-        subTxt.textColor = Color.white();
-        subTxt.textOpacity = 0.8;
-        subTxt.font = Font.systemFont(12);
-        addFlexSpacer({ to: w });
-        let a = w.addText("");
-        a.textColor = Color.white();
-        a.textOpacity = 0.8;
-        a.font = Font.systemFont(12);
-        return w;
-    };
-
-    const ErrorWidget = (subtitle) => {
-        return SimpleTextWidget("ERROR", "Widget Error", subtitle, "#000");
-    };
-
     /**
      * Utility class for iteracting with the Plex Media Server API and Plex.tv API
      */
@@ -121,70 +88,64 @@
     // Based on https://github.com/au5ton/scriptable.app/blob/75cdb02e1229fc4c4338169657e4f782f9a935bf/PlexStreamsWidget.js
     const widgetModule = {
         createWidget: async (params) => {
-            try {
-                // extract user data
-                const { host, token } = parseWidgetParameter(params.widgetParameter);
-                // get interesting data
-                const { serverName, sessionCount, transcodeCount, bandwidthUsedKilobits } = await getPlexData(host, token);
-                // get image from cache
-                const cache = new ResourceCache('plex', ['plex-logo.png']);
-                await cache.initCache();
-                const plexLogoPng = Image.fromFile(await cache.accessCache('plex-logo.png'));
-                const plexBlackColor = new Color('#1f2326', 1);
-                const plexGreyColor = new Color('#BCBDBE', 1);
-                const plexOrangeColor = new Color('#e5a00d', 1);
-                let w = new ListWidget();
-                w.backgroundColor = plexBlackColor;
-                w.useDefaultPadding();
-                // Add server name heading
-                let header = w.addStack();
-                header.spacing = 2;
-                let logo = header.addImage(plexLogoPng);
-                logo.imageSize = new Size(20, 20);
-                let name = header.addText(serverName);
-                name.font = Font.boldRoundedSystemFont(16);
-                name.textColor = plexGreyColor;
-                name.lineLimit = 1;
-                name.minimumScaleFactor = 0.5;
-                // spacer
-                w.addSpacer();
-                // Add number of transcodes
-                let primaryText = w.addText(`${sessionCount} stream${sessionCount === 1 ? '' : 's'}`);
-                primaryText.font = Font.boldRoundedSystemFont(22);
-                primaryText.textColor = plexOrangeColor;
-                // Add number of transcodes
-                let secondaryText = w.addText(`${transcodeCount} transcode${transcodeCount === 1 ? '' : 's'}`);
-                secondaryText.font = Font.semiboldRoundedSystemFont(16);
-                secondaryText.textColor = plexGreyColor;
-                // Add bandwidth usage
-                let row = w.addStack();
-                let tertiaryText = row.addText(`${Math.round(bandwidthUsedKilobits / 100) / 10} Mbps `);
-                tertiaryText.font = Font.mediumRoundedSystemFont(14);
-                tertiaryText.textColor = plexGreyColor;
-                let symbol = row.addImage(SFSymbol.named('arrow.up.arrow.down').image);
-                symbol.tintColor = plexGreyColor;
-                symbol.imageSize = new Size(16, 16);
-                // spacer
-                w.addSpacer(undefined);
-                // Add 'last updated' date to footer
-                let footer = w.addStack();
-                var nowDate = new Date();
-                let date = footer.addDate(nowDate);
-                //date.applyRelativeStyle();
-                date.applyTimeStyle();
-                date.font = Font.footnote();
-                //date.font = Font.regularSystemFont(10);
-                date.textColor = plexGreyColor;
-                date.leftAlignText();
-                //let ago = footer.addText(' ago');
-                //ago.font = Font.footnote();
-                //ago.textColor = plexGreyColor;
-                return w;
-            }
-            catch (err) {
-                console.error(typeof err === 'string' ? err : JSON.stringify(err));
-                return typeof err === 'string' ? ErrorWidget(err) : ErrorWidget(JSON.stringify(err));
-            }
+            // extract user data
+            const { host, token } = parseWidgetParameter(params.widgetParameter);
+            // get interesting data
+            const { serverName, sessionCount, transcodeCount, bandwidthUsedKilobits } = await getPlexData(host, token);
+            // get image from cache
+            const cache = new ResourceCache('plex', ['plex-logo.png']);
+            await cache.initCache();
+            const plexLogoPng = Image.fromFile(await cache.accessCache('plex-logo.png'));
+            const plexBlackColor = new Color('#1f2326', 1);
+            const plexGreyColor = new Color('#BCBDBE', 1);
+            const plexOrangeColor = new Color('#e5a00d', 1);
+            let w = new ListWidget();
+            w.backgroundColor = plexBlackColor;
+            w.useDefaultPadding();
+            // Add server name heading
+            let header = w.addStack();
+            header.spacing = 2;
+            let logo = header.addImage(plexLogoPng);
+            logo.imageSize = new Size(20, 20);
+            let name = header.addText(serverName);
+            name.font = Font.boldRoundedSystemFont(16);
+            name.textColor = plexGreyColor;
+            name.lineLimit = 1;
+            name.minimumScaleFactor = 0.5;
+            // spacer
+            w.addSpacer();
+            // Add number of transcodes
+            let primaryText = w.addText(`${sessionCount} stream${sessionCount === 1 ? '' : 's'}`);
+            primaryText.font = Font.boldRoundedSystemFont(22);
+            primaryText.textColor = plexOrangeColor;
+            // Add number of transcodes
+            let secondaryText = w.addText(`${transcodeCount} transcode${transcodeCount === 1 ? '' : 's'}`);
+            secondaryText.font = Font.semiboldRoundedSystemFont(16);
+            secondaryText.textColor = plexGreyColor;
+            // Add bandwidth usage
+            let row = w.addStack();
+            let tertiaryText = row.addText(`${Math.round(bandwidthUsedKilobits / 100) / 10} Mbps `);
+            tertiaryText.font = Font.mediumRoundedSystemFont(14);
+            tertiaryText.textColor = plexGreyColor;
+            let symbol = row.addImage(SFSymbol.named('arrow.up.arrow.down').image);
+            symbol.tintColor = plexGreyColor;
+            symbol.imageSize = new Size(16, 16);
+            // spacer
+            w.addSpacer(undefined);
+            // Add 'last updated' date to footer
+            let footer = w.addStack();
+            var nowDate = new Date();
+            let date = footer.addDate(nowDate);
+            //date.applyRelativeStyle();
+            date.applyTimeStyle();
+            date.font = Font.footnote();
+            //date.font = Font.regularSystemFont(10);
+            date.textColor = plexGreyColor;
+            date.leftAlignText();
+            //let ago = footer.addText(' ago');
+            //ago.font = Font.footnote();
+            //ago.textColor = plexGreyColor;
+            return w;
         }
     };
     const parseWidgetParameter = (param) => {

@@ -10,82 +10,76 @@ import { ResourceCache } from 'code/classes/ResourceCache';
 
 const widgetModule: IWidgetModule = {
   createWidget: async (params) => {
-    try {
-      // extract user data
-      const { host, token } = parseWidgetParameter(params.widgetParameter)
+    // extract user data
+    const { host, token } = parseWidgetParameter(params.widgetParameter)
 
-      // get interesting data
-      const { serverName, sessionCount, transcodeCount, bandwidthUsedKilobits } = await getPlexData(host, token);
+    // get interesting data
+    const { serverName, sessionCount, transcodeCount, bandwidthUsedKilobits } = await getPlexData(host, token);
 
-      // get image from cache
-      const cache = new ResourceCache('plex', ['plex-logo.png']);
-      await cache.initCache();
+    // get image from cache
+    const cache = new ResourceCache('plex', ['plex-logo.png']);
+    await cache.initCache();
 
-      const plexLogoPng = Image.fromFile(await cache.accessCache('plex-logo.png'));
-      const plexBlackColor = new Color('#1f2326', 1);
-      const plexGreyColor = new Color('#BCBDBE', 1);
-      const plexOrangeColor = new Color('#e5a00d', 1);
+    const plexLogoPng = Image.fromFile(await cache.accessCache('plex-logo.png'));
+    const plexBlackColor = new Color('#1f2326', 1);
+    const plexGreyColor = new Color('#BCBDBE', 1);
+    const plexOrangeColor = new Color('#e5a00d', 1);
 
-      let w = new ListWidget()
-      w.backgroundColor = plexBlackColor;
-      w.useDefaultPadding();
+    let w = new ListWidget()
+    w.backgroundColor = plexBlackColor;
+    w.useDefaultPadding();
 
-      // Add server name heading
-      let header = w.addStack();
-      header.spacing = 2;
-      let logo = header.addImage(plexLogoPng);
-      logo.imageSize = new Size(20, 20);
-      let name = header.addText(serverName);
-      name.font = Font.boldRoundedSystemFont(16);
-      name.textColor = plexGreyColor;
-      name.lineLimit = 1;
-      name.minimumScaleFactor = 0.5;
+    // Add server name heading
+    let header = w.addStack();
+    header.spacing = 2;
+    let logo = header.addImage(plexLogoPng);
+    logo.imageSize = new Size(20, 20);
+    let name = header.addText(serverName);
+    name.font = Font.boldRoundedSystemFont(16);
+    name.textColor = plexGreyColor;
+    name.lineLimit = 1;
+    name.minimumScaleFactor = 0.5;
 
-      // spacer
-      w.addSpacer();
+    // spacer
+    w.addSpacer();
 
-      // Add number of transcodes
-      let primaryText = w.addText(`${sessionCount} stream${sessionCount === 1 ? '' : 's'}`);
-      primaryText.font = Font.boldRoundedSystemFont(22);
-      primaryText.textColor = plexOrangeColor;
+    // Add number of transcodes
+    let primaryText = w.addText(`${sessionCount} stream${sessionCount === 1 ? '' : 's'}`);
+    primaryText.font = Font.boldRoundedSystemFont(22);
+    primaryText.textColor = plexOrangeColor;
 
-      // Add number of transcodes
-      let secondaryText = w.addText(`${transcodeCount} transcode${transcodeCount === 1 ? '' : 's'}`);
-      secondaryText.font = Font.semiboldRoundedSystemFont(16);
-      secondaryText.textColor = plexGreyColor;
+    // Add number of transcodes
+    let secondaryText = w.addText(`${transcodeCount} transcode${transcodeCount === 1 ? '' : 's'}`);
+    secondaryText.font = Font.semiboldRoundedSystemFont(16);
+    secondaryText.textColor = plexGreyColor;
 
-      // Add bandwidth usage
-      let row = w.addStack();
-      let tertiaryText = row.addText(`${Math.round(bandwidthUsedKilobits / 100) / 10} Mbps `);
-      tertiaryText.font = Font.mediumRoundedSystemFont(14);
-      tertiaryText.textColor = plexGreyColor;
-      let symbol = row.addImage(SFSymbol.named('arrow.up.arrow.down').image);
-      symbol.tintColor = plexGreyColor;
-      symbol.imageSize = new Size(16, 16);
+    // Add bandwidth usage
+    let row = w.addStack();
+    let tertiaryText = row.addText(`${Math.round(bandwidthUsedKilobits / 100) / 10} Mbps `);
+    tertiaryText.font = Font.mediumRoundedSystemFont(14);
+    tertiaryText.textColor = plexGreyColor;
+    let symbol = row.addImage(SFSymbol.named('arrow.up.arrow.down').image);
+    symbol.tintColor = plexGreyColor;
+    symbol.imageSize = new Size(16, 16);
 
-      // spacer
-      w.addSpacer(undefined)
+    // spacer
+    w.addSpacer(undefined)
 
-      // Add 'last updated' date to footer
-      let footer = w.addStack();
-      var nowDate = new Date();
-      let date = footer.addDate(nowDate);
-      //date.applyRelativeStyle();
-      date.applyTimeStyle();
-      date.font = Font.footnote();
-      //date.font = Font.regularSystemFont(10);
-      date.textColor = plexGreyColor;
-      date.leftAlignText();
-      //let ago = footer.addText(' ago');
-      //ago.font = Font.footnote();
-      //ago.textColor = plexGreyColor;
+    // Add 'last updated' date to footer
+    let footer = w.addStack();
+    var nowDate = new Date();
+    let date = footer.addDate(nowDate);
+    //date.applyRelativeStyle();
+    date.applyTimeStyle();
+    date.font = Font.footnote();
+    //date.font = Font.regularSystemFont(10);
+    date.textColor = plexGreyColor;
+    date.leftAlignText();
+    //let ago = footer.addText(' ago');
+    //ago.font = Font.footnote();
+    //ago.textColor = plexGreyColor;
 
-      return w;
-    }
-    catch(err) {
-      console.error(typeof err === 'string' ? err : JSON.stringify(err));
-      return typeof err === 'string' ? ErrorWidget(err) : ErrorWidget(JSON.stringify(err));
-    }
+    return w;
   }
 }
 
