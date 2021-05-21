@@ -1,0 +1,10 @@
+{
+    "name": "Plex Streams",
+    "description": "View the number of active streams on your Plex Media Server.",
+    "paramLabel": "Your \"X-Plex-Token\" @ the IP and port of your Plex server.",
+    "paramPlaceHolder": "qwertyuip@192.168.1.69:32400",
+    "loaderArgs": {
+        "iconColor": "orange",
+        "iconGlyph": "server"
+    }
+}
