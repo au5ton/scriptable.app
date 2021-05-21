@@ -2,10 +2,53 @@
 // These must be at the very top of the file. Do not edit.
 // icon-color: orange; icon-glyph: server; share-sheet-inputs: plain-text;
 
+/////////////
+// Edit these if you're debugging or testing
+/////////////
+
+const environment = {
+  PLEX_HOST: '',
+  PLEX_TOKEN: ''
+};
+
+/////////////
+// Library code
+/////////////
+
+// API convenience class
+class PlexAPI {
+  constructor(plexHost, plexToken) {
+      this.plexHost = plexHost; // 123.123.123.123:45678
+      this.plexToken = plexToken; // qwertyuiop
+      this.plexUser = null; // filled after init() is called
+  }
+  async get(path) {
+      const req = new Request(`http://${this.plexHost}${path}?X-Plex-Token=${this.plexToken}`);
+      req.headers = {
+      Accept: 'application/json'
+      };
+      return await req.loadJSON();
+  }
+  async getData(path) {
+      const req = new Request(`http://${this.plexHost}${path}?X-Plex-Token=${this.plexToken}`);
+      return await req.load();
+  }
+  async getPlexTV(path) {
+      const req = new Request(`https://plex.tv${path}?X-Plex-Token=${this.plexToken}`);
+      req.headers = {
+      Accept: 'application/json'
+      };
+      return await req.loadJSON();
+  }
+  async init() {
+      let userData = await this.getPlexTV('/api/v2/user');
+      this.plexUser = userData['username'];
+  }
+}
+
 // Data fetching function
 async function getPlexData(host, token) {
   // Link to API
-  const PlexAPI = importModule('PlexStreamsWidget/PlexAPI');
   const plex = new PlexAPI(host, token);
   await plex.init();
 
@@ -63,6 +106,64 @@ async function getPlexData(host, token) {
     transcodeCount,
     bandwidthUsedKilobits
   }
+}
+
+/////////////
+// Cache code
+/////////////
+
+function getCachePath() {
+  let fm = FileManager.iCloud();
+  return fm.joinPath(fm.documentsDirectory(), 'cache', 'au5ton');
+}
+
+function getCacheResourcesUrl() {
+  return 'https://au5ton.github.io/scriptable.app/resources/';
+}
+
+async function initCache() {
+  let fm = FileManager.iCloud();
+  let cachePath = getCachePath();
+  // check if cache directory exists
+  if(! fm.fileExists(cachePath)){
+    fm.createDirectory(cachePath, true);
+  }
+  // declare the location where to get some remote images
+  const RESOURCES_URL = getCacheResourcesUrl();
+  const required_files = ['plex-logo.png'];
+  // download the files, if they aren't already cached
+  for(let file of required_files) {
+    let cacheFile = fm.joinPath(cachePath, file);
+    // if file doesn't exist, download it locally
+    if(! fm.fileExists(cacheFile)) {
+      fm.write(cacheFile, await new Request(`${RESOURCES_URL}${file}`).load());
+    }
+    else {
+      
+    }
+  }
+  return cachePath;
+}
+
+async function accessCache(file) {
+  let fm = FileManager.iCloud();
+  let cachePath = getCachePath();
+  let cacheFile = fm.joinPath(cachePath, file);
+  const RESOURCES_URL = getCacheResourcesUrl();
+
+  // if file doesn't exist, download it locally
+  if(! fm.fileExists(cacheFile)) {
+    fm.write(cacheFile, await new Request(`${RESOURCES_URL}${file}`).load());
+  }
+  else {
+    // file exists locally, but is it downloaded?
+    if(! fm.isFileDownloaded(cacheFile)) {
+      // download it if we don't have it ready to use
+      await fm.downloadFileFromiCloud(cacheFile);
+    }
+  }
+  // return the fully qualified path name
+  return cacheFile;
 }
 
 // Synchronously create widget
@@ -152,11 +253,11 @@ function getEnv() {
   }
   else {
     try {
-      const { PLEX_HOST, PLEX_TOKEN } = importModule('Env');
+      const { PLEX_HOST, PLEX_TOKEN } = environment;
       return { PLEX_HOST, PLEX_TOKEN };
     }
     catch(err) {
-      throw 'Exception thrown while parsing Env.js';
+      throw 'Exception thrown while destructuring environment';
     }
   }
 }

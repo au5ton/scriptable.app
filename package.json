@@ -5,9 +5,18 @@
     "icloud": "node deploy.js"
   },
   "eslintConfig": {
+    "parser": "@babel/eslint-parser",
     "extends": "@scriptable-ios"
   },
+  "babel": {
+    "plugins": [
+      "@babel/plugin-syntax-top-level-await"
+    ]
+  },
   "devDependencies": {
+    "@babel/core": "^7.14.3",
+    "@babel/eslint-parser": "^7.14.3",
+    "@babel/plugin-syntax-top-level-await": "^7.12.13",
     "@scriptable-ios/eslint-config": "latest",
     "@types/scriptable-ios": "latest",
     "eslint": "latest",
