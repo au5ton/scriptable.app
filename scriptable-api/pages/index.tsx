@@ -117,7 +117,7 @@ export default function Page({ widgetLoader, widgetModules }: PageProps) {
               </Typography>
                 <Typography variant="body1" gutterBottom ></Typography>
                 <div style={{ marginTop: 32 }}>
-                  <Button href="https://github.com/jasperhartong/scriptable-ts-boilerplate" variant="contained" color="secondary" disableElevation endIcon={<ArrowForwardIcon />}>Github repo </Button>
+                  <Button href="https://github.com/au5ton/scriptable.app" variant="contained" color="secondary" disableElevation endIcon={<ArrowForwardIcon />}>Github repo </Button>
                 </div>
               </div>
             </Grid>
