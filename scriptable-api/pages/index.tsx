@@ -5,6 +5,8 @@ import { Alert, AlertTitle } from "@material-ui/lab"
 import { readFileSync } from "fs"
 import { GetStaticProps } from "next"
 import Head from 'next/head'
+import fs from 'fs';
+import path from 'path';
 import { resolve } from "path"
 import { useEffect, useMemo, useState } from "react"
 import { useDebounce } from 'use-debounce'
@@ -219,12 +221,25 @@ export default function Page({ widgetLoader, widgetModules }: PageProps) {
 
 export const getStaticProps: GetStaticProps<{}, {}> = async ({ params }) => {
   const widgetLoaderPath = resolve('./public/compiled-widgets/widgetLoader.js');
-  const widgetModuleModuleNames = [
-    "sticky.WidgetModule",
-    "simpleAnalytics.WidgetModule",
-    "covid19.WidgetModule",
-    "kitchenSink.WidgetModule"
-  ]
+  const widgetModulesPath= path.join(process.cwd(), 'public', 'compiled-widgets', 'widget-modules');
+  
+  /** automatically generate list of eligible widgets */
+  const widgetModuleModuleNames = fs.readdirSync(widgetModulesPath)
+  .filter(value => {
+    // first check: check if it ends in WidgetModule.js
+    if(value.endsWith('WidgetModule.js')) {
+      // second check: check that .meta.json and .png files exist
+      const metaLoc = path.join(widgetModulesPath, `${path.basename(value, '.js')}.meta.json`);
+      const pngLoc = path.join(widgetModulesPath, `${path.basename(value, '.js')}.png`);
+      if(fs.existsSync(metaLoc) && fs.existsSync(pngLoc)) {
+        return true;
+      }
+    }
+    return false;
+  })
+  .map(value => path.basename(value, '.js'))
+  .sort();
+
   const props: PageProps = {
     widgetLoader: readFileSync(widgetLoaderPath).toString("utf-8"),
     widgetModules: widgetModuleModuleNames.map(moduleName => {
