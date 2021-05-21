@@ -83,7 +83,7 @@ const widgetModule: IWidgetModule = {
       return w;
     }
     catch(err) {
-      console.error(err);
+      console.error(typeof err === 'string' ? err : JSON.stringify(err));
       return typeof err === 'string' ? ErrorWidget(err) : ErrorWidget(JSON.stringify(err));
     }
   }
