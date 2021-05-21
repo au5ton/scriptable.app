@@ -182,7 +182,8 @@
                 return w;
             }
             catch (err) {
-                return ErrorWidget(err);
+                console.error(err);
+                return typeof err === 'string' ? ErrorWidget(err) : ErrorWidget(JSON.stringify(err));
             }
         }
     };
