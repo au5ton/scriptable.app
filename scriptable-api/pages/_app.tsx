@@ -7,7 +7,7 @@ const theme = createMuiTheme({
     type: "light",
   },
   shape: {
-    borderRadius: 16,
+    borderRadius: 4, // was 16, @material-ui default is 4
   },
 })
 
