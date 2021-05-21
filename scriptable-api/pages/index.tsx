@@ -27,6 +27,7 @@ const useStyles = makeStyles(theme => ({
   headerText: {
     paddingTop: theme.spacing(6),
     paddingBottom: theme.spacing(6),
+    wordWrap: 'break-word',
   },
   heroImage: {
     backgroundImage: "url(/scriptable-hero.png)",
@@ -113,7 +114,7 @@ export default function Page({ widgetLoader, widgetModules }: PageProps) {
           <Grid container alignItems="flex-end">
             <Grid item xs={12} sm={6}>
               <div className={classes.headerText}>
-                <Typography component="h4" variant="h4" gutterBottom color="inherit">@au5ton/scriptable.app</Typography>
+                <Typography component="h4" variant="h4" gutterBottom color="inherit">@au5ton Scriptable Widgets</Typography>
                 <Typography variant="body1" style={{ opacity: 0.6 }} gutterBottom >
                   A boilerplate for creating remote-updatable <Link color="inherit" underline="always" href="https://scriptable.app">Scriptable</Link> widgets. Includes setup, components, utils and examples to develop in the comfort of <Link color="inherit" underline="always" href="https://www.typescriptlang.org">TypeScript</Link>.
               </Typography>
