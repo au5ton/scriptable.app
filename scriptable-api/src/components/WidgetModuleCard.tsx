@@ -86,7 +86,7 @@ export const WidgetModuleCard = ({ widgetModule, isSelected, onSelect }: Props) 
             <CardMedia
                 className={classes.cover}
                 image={widgetModule.imageSrc}
-                title="Live from space album cover"
+                title={`${widgetModule.meta.name} screenshot`}
             />
         </Card>
     );
