@@ -12,17 +12,17 @@
     "@material-ui/icons": "^4.11.2",
     "@material-ui/lab": "^4.0.0-alpha.58",
     "clsx": "^1.1.1",
-    "highlight.js": "^10.3.2",
-    "next": "10.0.0",
-    "react": "17.0.1",
-    "react-dom": "17.0.1",
+    "highlight.js": "^10.7.2",
+    "next": "11.1.2",
+    "react": "17.0.2",
+    "react-dom": "17.0.2",
     "use-clipboard-copy": "^0.2.0",
     "use-debounce": "^5.0.1"
   },
   "devDependencies": {
     "@types/highlight.js": "^9.12.4",
     "@types/node": "^14.14.6",
-    "@types/react": "^16.9.55",
-    "typescript": "^4.0.5"
+    "@types/react": "^17.0.24",
+    "typescript": "^4.4.3"
   }
 }
