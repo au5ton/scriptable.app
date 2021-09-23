@@ -1,0 +1,10 @@
+{
+    "name": "Custom Countdown",
+    "description": "Add a countdown with many customizations",
+    "paramLabel": "Date: 1970-01-01, Title: Party, ...",
+    "paramPlaceHolder": "..., Emoji:🍰,startColor:#3050cc,endColor:#050530",
+    "loaderArgs": {
+        "iconColor": "purple",
+        "iconGlyph": "hashtag"
+    }
+}
