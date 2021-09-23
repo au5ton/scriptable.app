@@ -16,24 +16,29 @@ const widgetModule: IWidgetModule = {
     const days = Math.ceil(distance / (1000 * 60 * 60 * 24))
 
     let w = new ListWidget()
- 
+    w.useDefaultPadding();
+    w.spacing = 2
+
     let logo = w.addText(emoji)
-    logo.centerAlignText()
     logo.font = Font.systemFont(30)
+    logo.minimumScaleFactor = 0.75
 
     let titleText = w.addText(title)
     titleText.font = Font.semiboldSystemFont(18)
-    titleText.centerAlignText()
     titleText.textColor = Color.white()
+    titleText.minimumScaleFactor = 0.45
 
     let daysText = w.addText(days.toString(10))
-    daysText.font = Font.semiboldSystemFont(35);  
+    daysText.font = Font.semiboldSystemFont(28);  
     daysText.textColor = Color.white()
+    daysText.minimumScaleFactor = 0.95
 
     let daysText2 = w.addText('days')
     daysText2.font = Font.semiboldSystemFont(20);  
     daysText2.textColor = Color.white()
+    daysText2.minimumScaleFactor = 0.8
 
+    logo.centerAlignText()
     titleText.centerAlignText()
     daysText.centerAlignText()
     daysText2.centerAlignText()
