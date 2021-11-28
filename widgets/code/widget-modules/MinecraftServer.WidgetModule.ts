@@ -196,7 +196,7 @@ async function getServerData(address) {
 
   // get player images
   for(let player of playerList) {
-    player.head = `https://crafatar.com/avatars/${player.uuid}`;
+    player.head = `https://crafatar.com/avatars/${player.uuid}?default=MHF_Steve&overlay`;
   }
 
   return {

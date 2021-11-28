@@ -232,7 +232,7 @@
         const playerList = res.online && res.players !== undefined && res.players.uuid !== undefined ? Object.keys(res.players.uuid).map(e => { return { username: e, uuid: res.players.uuid[e], head: '' }; }) : [];
         // get player images
         for (let player of playerList) {
-            player.head = `https://crafatar.com/avatars/${player.uuid}`;
+            player.head = `https://crafatar.com/avatars/${player.uuid}?default=MHF_Steve&overlay`;
         }
         return {
             version: res.version || '',
