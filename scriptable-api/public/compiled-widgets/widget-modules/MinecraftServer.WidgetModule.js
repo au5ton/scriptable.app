@@ -159,33 +159,37 @@
                 playerStackRight.layoutVertically();
                 playerStackRight.setPadding(0, 2, 0, 0);
                 playerStackRight.spacing = 1;
+                // chunk array
+                const [leftColumnPlayers, rightColumnPlayers] = chunkArray(playerList, 2);
                 // populate left column
-                for (let i = 0; i < Math.floor(playerList.length / 2); i++) {
-                    let player = playerList[i];
-                    let row = playerStackLeft.addStack();
-                    row.size = new Size(0, 13);
-                    let pHead = row.addImage(await (new Request(player.head)).loadImage());
-                    pHead.imageSize = new Size(12, 12);
-                    row.spacing = 3;
-                    let pName = row.addText(player.username);
-                    pName.font = Font.semiboldRoundedSystemFont(12);
-                    pName.textColor = Color.yellow();
-                    pName.lineLimit = 1;
-                    pName.minimumScaleFactor = 0.35;
+                if (Array.isArray(leftColumnPlayers)) {
+                    for (let player of leftColumnPlayers) {
+                        let row = playerStackLeft.addStack();
+                        row.size = new Size(0, 13);
+                        let pHead = row.addImage(await (new Request(player.head)).loadImage());
+                        pHead.imageSize = new Size(12, 12);
+                        row.spacing = 3;
+                        let pName = row.addText(player.username);
+                        pName.font = Font.semiboldRoundedSystemFont(12);
+                        pName.textColor = Color.yellow();
+                        pName.lineLimit = 1;
+                        pName.minimumScaleFactor = 0.35;
+                    }
                 }
                 // populate right column
-                for (let i = Math.ceil(playerList.length / 2); i < playerList.length; i++) {
-                    let player = playerList[i];
-                    let row = playerStackRight.addStack();
-                    row.size = new Size(0, 13);
-                    let pHead = row.addImage(await (new Request(player.head)).loadImage());
-                    pHead.imageSize = new Size(12, 12);
-                    row.spacing = 3;
-                    let pName = row.addText(player.username);
-                    pName.font = Font.semiboldRoundedSystemFont(12);
-                    pName.textColor = Color.yellow();
-                    pName.lineLimit = 1;
-                    pName.minimumScaleFactor = 0.35;
+                if (Array.isArray(rightColumnPlayers)) {
+                    for (let player of rightColumnPlayers) {
+                        let row = playerStackRight.addStack();
+                        row.size = new Size(0, 13);
+                        let pHead = row.addImage(await (new Request(player.head)).loadImage());
+                        pHead.imageSize = new Size(12, 12);
+                        row.spacing = 3;
+                        let pName = row.addText(player.username);
+                        pName.font = Font.semiboldRoundedSystemFont(12);
+                        pName.textColor = Color.yellow();
+                        pName.lineLimit = 1;
+                        pName.minimumScaleFactor = 0.35;
+                    }
                 }
                 // If too many players to list them all, then show a message
                 if (playersOnline > playerList.length) {
@@ -245,6 +249,16 @@
             playerList: playerList.slice(0, PLAYER_LIMIT),
             software: res.software ? res.software : 'Vanilla',
         };
+    }
+    // See: https://stackoverflow.com/a/46122602
+    function chunkArray(arr, n) {
+        let chunkLength = Math.max(arr.length / n, 1);
+        let chunks = [];
+        for (let i = 0; i < n; i++) {
+            if (chunkLength * (i + 1) <= arr.length)
+                chunks.push(arr.slice(chunkLength * i, chunkLength * (i + 1)));
+        }
+        return chunks;
     }
     module.exports = widgetModule;
 
