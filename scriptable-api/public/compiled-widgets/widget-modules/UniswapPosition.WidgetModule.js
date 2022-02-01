@@ -55,6 +55,7 @@
             footnote.font = Font.footnote();
             footnote.minimumScaleFactor = 0.5;
             footnote.lineLimit = 1;
+            footnote.textColor = uniFees;
             return w;
         }
     };
