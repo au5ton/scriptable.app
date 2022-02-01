@@ -1,0 +1,10 @@
+{
+    "name": "Uniswap Position",
+    "description": "View information about your Uniswap V3 positions.",
+    "paramLabel": "Your Ethereum wallet",
+    "paramPlaceHolder": "0xffffff",
+    "loaderArgs": {
+        "iconColor": "orange",
+        "iconGlyph": "server"
+    }
+}
