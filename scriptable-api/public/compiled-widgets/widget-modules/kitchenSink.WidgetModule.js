@@ -47,7 +47,7 @@
     };
 
     const ErrorImage = ({ error, width, height }) => {
-        const text = `${(error === null || error === void 0 ? void 0 : error.message) || error}`;
+        const text = `${error?.message || error}`;
         const dc = new DrawContext();
         dc.size = new Size(width || 200, height || 200);
         dc.respectScreenScale = true;
@@ -64,7 +64,7 @@
         }
         const widgetSize = getWidgetSizeInPoint();
         const dc = new DrawContext();
-        dc.size = new Size(width || (widgetSize === null || widgetSize === void 0 ? void 0 : widgetSize.width) || 200, height || (widgetSize === null || widgetSize === void 0 ? void 0 : widgetSize.height) || 200);
+        dc.size = new Size(width || widgetSize?.width || 200, height || widgetSize?.height || 200);
         dc.respectScreenScale = true;
         dc.opaque = false;
         const barColor = color;

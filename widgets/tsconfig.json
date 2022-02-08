@@ -1,8 +1,8 @@
 {
     "compilerOptions": {
-        "target": "es2019",
+        "target": "es2020",
         "lib": [
-            "es2019"
+            "es2020"
         ],
         "baseUrl": "./",
         "allowJs": true,

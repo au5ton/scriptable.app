@@ -1,22 +1,5 @@
 (function () {
 
-    /** makes debugging JSON responses easier when something goes wrong */
-    async function getJSON(path) {
-        const req = new Request(path);
-        req.headers = {
-            Accept: 'application/json'
-        };
-        let res = '';
-        try {
-            res = await req.loadString();
-            return JSON.parse(res);
-        }
-        catch (err) {
-            throw `Failed to parse JSON.\n` +
-                `- URL: ${req.url}\n` +
-                `- Body:\n${res}`;
-        }
-    }
     async function GraphQL(path, query) {
         const req = new Request(path);
         req.headers = {
@@ -43,11 +26,9 @@
     const widgetModule = {
         createWidget: async (params) => {
             // extract user data
-            const wallet = parseWidgetParameter(params.widgetParameter);
-            console.log(await getUSDCPrice());
-            console.log(await getUniswapPositionData(12345));
+            const positionID = parseWidgetParameter(params.widgetParameter);
             // get interesting data
-            const { liquidityUSD, unclaimedFees, token0Per1 } = await getUniswapData(wallet);
+            const { liquidityUSD, unclaimedFeesUSD, currentPrice, currentPriceUnitDescription } = await calculateUniswapPositionData(positionID);
             const uniBackground = new Color('#191b1f', 1);
             const uniText = new Color('#ffffff', 1);
             const uniFees = new Color('#27ae60', 1);
@@ -59,8 +40,8 @@
             caption1.font = Font.semiboldSystemFont(12);
             caption1.textColor = uniText;
             // Add liquidity value
-            let value1 = w.addText(`$${liquidityUSD.toLocaleString()}`);
-            value1.font = Font.regularSystemFont(18);
+            let value1 = w.addText(`$${financialFormat(liquidityUSD)}`);
+            value1.font = Font.mediumSystemFont(18);
             value1.minimumScaleFactor = 0.5;
             value1.textColor = uniText;
             w.addSpacer();
@@ -69,12 +50,12 @@
             caption2.font = Font.semiboldSystemFont(12);
             caption2.textColor = uniText;
             // Add unclaimed fees value
-            let value2 = w.addText(`$${unclaimedFees.toLocaleString()}`);
-            value2.font = Font.semiboldSystemFont(22);
+            let value2 = w.addText(`$${financialFormat(unclaimedFeesUSD)}`);
+            value2.font = Font.mediumSystemFont(22);
             value2.minimumScaleFactor = 0.5;
             value2.textColor = uniFees;
             w.addSpacer();
-            let footnote = w.addText(token0Per1);
+            let footnote = w.addText(`${financialFormat(currentPrice)} ${currentPriceUnitDescription}`);
             footnote.font = Font.footnote();
             footnote.minimumScaleFactor = 0.5;
             footnote.lineLimit = 1;
@@ -85,29 +66,8 @@
     const parseWidgetParameter = (param) => {
         return param;
     };
-    // Data fetching function
-    async function getUniswapData(wallet) {
-        const res = await getJSON(`https://openapi.debank.com/v1/user/protocol?id=${wallet}&protocol_id=uniswap3`);
-        const liquidityUSD = res.portfolio_item_list
-            .map(e => e.stats.net_usd_value)
-            .reduce((s, v) => s + v)
-            .toFixed(2);
-        const unclaimedFees = res.portfolio_item_list
-            .map(e => e.detail.reward_token_list)
-            .flat()
-            .map(e => e.price * e.amount)
-            .reduce((s, v) => s + v)
-            .toFixed(2);
-        const token0Per1 = (() => {
-            const temp = res.portfolio_item_list[0].detail.supply_token_list
-                .sort((a, b) => a.price - b.price);
-            return `${(temp[1].price / temp[0].price).toFixed(2)} ${temp[0].symbol} per ${temp[1].symbol}`;
-        })();
-        return {
-            liquidityUSD,
-            unclaimedFees,
-            token0Per1,
-        };
+    function financialFormat(n) {
+        return n.toLocaleString(undefined, { 'minimumFractionDigits': 2, 'maximumFractionDigits': 2 });
     }
     async function getUSDCPrice() {
         const res = await GraphQL('https://api.thegraph.com/subgraphs/name/uniswap/uniswap-v3', `{
@@ -125,6 +85,69 @@
     }
   }`);
         return 1 / res.data.pool.token0.derivedETH;
+    }
+    async function calculateUniswapPositionData(positionID) {
+        const ethFiatExchangeRate = await getUSDCPrice();
+        const data = await getUniswapPositionData(positionID);
+        // calculate liquidity
+        const liquidityUSD = (Number(data.position.depositedToken0) * Number(data.position.token0.derivedETH) * ethFiatExchangeRate)
+            + (Number(data.position.depositedToken1) * Number(data.position.token1.derivedETH) * ethFiatExchangeRate);
+        // calculate unclaimed fees
+        // sincere thanks to: 
+        // - https://ethereum.stackexchange.com/a/109484
+        // - https://github.com/Uniswap/v3-core/blob/fc2107bd5709cdee6742d5164c1eb998566bcb75/contracts/libraries/Position.sol
+        // - https://github.com/Uniswap/interface/blob/8784a761d6ac435408f1bf3562e7b24af859608c/src/hooks/useV3PositionFees.ts#L14
+        const { unclaimedFeesToken0, unclaimedFeesToken1 } = (() => {
+            const { position: { feeGrowthInside0LastX128, feeGrowthInside1LastX128, liquidity, pool: { feeGrowthGlobal0X128, feeGrowthGlobal1X128, }, token0: { decimals: decimals0, }, token1: { decimals: decimals1, }, tickLower: { feeGrowthOutside0X128: feeGrowthOutside0X128_lower, feeGrowthOutside1X128: feeGrowthOutside1X128_lower, }, tickUpper: { feeGrowthOutside0X128: feeGrowthOutside0X128_upper, feeGrowthOutside1X128: feeGrowthOutside1X128_upper, } }, } = data;
+            // number of decimals to round to
+            const decimalsToRound = 5;
+            const diff0 = BigInt(feeGrowthGlobal0X128) - BigInt(feeGrowthOutside0X128_lower) - BigInt(feeGrowthOutside0X128_upper) - BigInt(feeGrowthInside0LastX128);
+            const feeToken0X10e5 = (diff0 * BigInt(liquidity)) / (2n ** 128n) / (1n * 10n ** BigInt(Number(decimals0) - decimalsToRound));
+            const diff1 = BigInt(feeGrowthGlobal1X128) - BigInt(feeGrowthOutside1X128_lower) - BigInt(feeGrowthOutside1X128_upper) - BigInt(feeGrowthInside1LastX128);
+            const feeToken1X10e5 = (diff1 * BigInt(liquidity)) / (2n ** 128n) / (1n * 10n ** BigInt(Number(decimals1) - decimalsToRound));
+            const feeToken0 = Number(feeToken0X10e5) / 10 ** decimalsToRound;
+            const feeToken1 = Number(feeToken1X10e5) / 10 ** decimalsToRound;
+            return {
+                unclaimedFeesToken0: feeToken0,
+                unclaimedFeesToken1: feeToken1,
+            };
+        })();
+        // calculate unclaimed fees (USD)
+        const unclaimedFeesUSD = (Number(unclaimedFeesToken0) * Number(data.position.token0.derivedETH) * ethFiatExchangeRate)
+            + (Number(unclaimedFeesToken1) * Number(data.position.token1.derivedETH) * ethFiatExchangeRate);
+        // calculate price boundaries
+        const { lowerTickPrice, upperTickPrice, currentPrice, currentPriceUnitDescription } = (() => {
+            const shouldUseToken1 = Number(data.position.pool.token0Price) < Number(data.position.pool.token1Price);
+            if (shouldUseToken1) {
+                return {
+                    lowerTickPrice: Number(data.position.tickLower.price0),
+                    upperTickPrice: Number(data.position.tickUpper.price0),
+                    currentPrice: Number(data.position.pool.token1Price),
+                    currentPriceUnitDescription: `${data.position.token1.symbol} per ${data.position.token0.symbol}`
+                };
+            }
+            else {
+                return {
+                    lowerTickPrice: Number(data.position.tickLower.price1),
+                    upperTickPrice: Number(data.position.tickUpper.price1),
+                    currentPrice: Number(data.position.pool.token0Price),
+                    currentPriceUnitDescription: `${data.position.token0.symbol} per ${data.position.token1.symbol}`
+                };
+            }
+        })();
+        // calculate if position is closed
+        const inRange = currentPrice > lowerTickPrice && currentPrice < upperTickPrice;
+        return {
+            liquidityUSD,
+            unclaimedFeesUSD,
+            unclaimedFeesToken0,
+            unclaimedFeesToken1,
+            lowerTickPrice,
+            upperTickPrice,
+            currentPrice,
+            currentPriceUnitDescription,
+            inRange,
+        };
     }
     async function getUniswapPositionData(positionID) {
         return (await GraphQL('https://api.thegraph.com/subgraphs/name/uniswap/uniswap-v3', `{
