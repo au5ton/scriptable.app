@@ -123,7 +123,6 @@ async function getUSDCPrice(): Promise<number> {
 }
 
 async function getETHPriceForTimestamp(timestamp: string): Promise<number> {
-  console.log('timestamp: '+timestamp)
   const res = await GraphQL<{ tokenHourDatas: { priceUSD: string }}>('https://api.thegraph.com/subgraphs/name/uniswap/uniswap-v3',`{
     tokenHourDatas(first: 1,  where: { periodStartUnix_lt: ${timestamp}, token: "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2"}, orderBy: periodStartUnix, orderDirection: desc) {
       periodStartUnix
