@@ -17,12 +17,35 @@
                 `- Body:\n${res}`;
         }
     }
+    async function GraphQL(path, query) {
+        const req = new Request(path);
+        req.headers = {
+            Accept: 'application/json',
+            'Content-Type': 'application/json',
+        };
+        req.method = 'POST';
+        req.body = JSON.stringify({
+            query,
+        });
+        let res = '';
+        try {
+            res = await req.loadString();
+            return JSON.parse(res);
+        }
+        catch (err) {
+            throw `Failed to parse JSON.\n` +
+                `- URL: ${req.url}\n` +
+                `- Body:\n${res}`;
+        }
+    }
 
     // Based on https://github.com/au5ton/scriptable.app/blob/75cdb02e1229fc4c4338169657e4f782f9a935bf/PlexStreamsWidget.js
     const widgetModule = {
         createWidget: async (params) => {
             // extract user data
             const wallet = parseWidgetParameter(params.widgetParameter);
+            console.log(await getUSDCPrice());
+            console.log(await getUniswapPositionData(12345));
             // get interesting data
             const { liquidityUSD, unclaimedFees, token0Per1 } = await getUniswapData(wallet);
             const uniBackground = new Color('#191b1f', 1);
@@ -85,6 +108,62 @@
             unclaimedFees,
             token0Per1,
         };
+    }
+    async function getUSDCPrice() {
+        const res = await GraphQL('https://api.thegraph.com/subgraphs/name/uniswap/uniswap-v3', `{
+    pool(id: "0x8ad599c3a0ff1de082011efddc58f1908eb6e6d8") {
+      token0 {
+        name
+        symbol
+        derivedETH
+      }
+      token1 {
+        name
+        symbol
+        derivedETH
+      }
+    }
+  }`);
+        return 1 / res.data.pool.token0.derivedETH;
+    }
+    async function getUniswapPositionData(positionID) {
+        return (await GraphQL('https://api.thegraph.com/subgraphs/name/uniswap/uniswap-v3', `{
+    position(id:${positionID}) {
+      liquidity
+      depositedToken0
+      depositedToken1
+      feeGrowthInside0LastX128
+      feeGrowthInside1LastX128
+      token0 {
+        symbol
+        name
+        decimals
+      }
+      token1 {
+        symbol
+        name
+        decimals
+      }
+      pool {
+        token0Price
+        token1Price
+        feeGrowthGlobal0X128
+        feeGrowthGlobal1X128
+      }
+      tickLower {
+        price0
+        price1
+        feeGrowthOutside0X128
+        feeGrowthOutside1X128
+      }
+      tickUpper {
+        price0
+        price1
+        feeGrowthOutside0X128
+        feeGrowthOutside1X128
+      }
+    }
+  }`)).data;
     }
     module.exports = widgetModule;
 

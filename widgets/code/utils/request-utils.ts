@@ -21,3 +21,29 @@ export async function getJSON<T = any>(path: string) {
         `- Body:\n${res}`;
   }
 }
+
+export interface GraphQLResponse<T> {
+  data: T;
+}
+
+export async function GraphQL<T = any>(path: string, query: string): Promise<GraphQLResponse<T>>  {
+  const req = new Request(path);
+  req.headers = {
+    Accept: 'application/json',
+    'Content-Type': 'application/json',
+  };
+  req.method = 'POST';
+  req.body = JSON.stringify({
+    query,
+  });
+  let res = '';
+  try {
+    res = await req.loadString();
+    return JSON.parse(res) as GraphQLResponse<T>;
+  }
+  catch(err) {
+    throw `Failed to parse JSON.\n`+
+        `- URL: ${req.url}\n` +
+        `- Body:\n${res}`;
+  }
+}
