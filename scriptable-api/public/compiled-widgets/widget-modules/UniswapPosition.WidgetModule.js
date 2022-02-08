@@ -28,38 +28,82 @@
             // extract user data
             const positionID = parseWidgetParameter(params.widgetParameter);
             // get interesting data
-            const { liquidityUSD, unclaimedFeesUSD, currentPrice, currentPriceUnitDescription } = await calculateUniswapPositionData(positionID);
+            const { liquidityUSD, profitUSD, currentPrice, currentPriceUnitDescription, createdTimestamp, inRange, lowerTickPrice, upperTickPrice, averageEarningsPerDayUSD } = await calculateUniswapPositionData(positionID);
             const uniBackground = new Color('#191b1f', 1);
             const uniText = new Color('#ffffff', 1);
-            const uniFees = new Color('#27ae60', 1);
+            const uniPositiveFees = new Color('#27ae60', 1);
+            const uniNegativeFees = new Color('#dc3545', 1);
             let w = new ListWidget();
             w.backgroundColor = uniBackground;
             w.useDefaultPadding();
             // Add "liquidity" caption
-            let caption1 = w.addText('Liquidity');
+            let topRow = w.addStack();
+            let caption1 = topRow.addText('Liquidity');
             caption1.font = Font.semiboldSystemFont(12);
             caption1.textColor = uniText;
+            topRow.addSpacer();
+            if (inRange) {
+                let symbol = topRow.addImage(SFSymbol.named('circle.fill').image);
+                symbol.tintColor = uniPositiveFees;
+                symbol.imageSize = new Size(16, 16);
+            }
+            else {
+                let symbol = topRow.addImage(SFSymbol.named('circle.fill').image);
+                symbol.tintColor = uniNegativeFees;
+                symbol.imageSize = new Size(16, 16);
+            }
             // Add liquidity value
             let value1 = w.addText(`$${financialFormat(liquidityUSD)}`);
             value1.font = Font.mediumSystemFont(18);
             value1.minimumScaleFactor = 0.5;
             value1.textColor = uniText;
             w.addSpacer();
-            // Add "unclaimed fees" caption
-            let caption2 = w.addText('Unclaimed fees');
+            // // Add "unclaimed fees" caption
+            // let caption2 = w.addText('Unclaimed fees');
+            // caption2.font = Font.semiboldSystemFont(12);
+            // caption2.textColor = uniText;
+            // // Add unclaimed fees value
+            // let value2 = w.addText(`$${financialFormat(unclaimedFeesUSD)}`);
+            // value2.font = Font.mediumSystemFont(22);
+            // value2.minimumScaleFactor = 0.5;
+            // value2.textColor = uniPositiveFees;
+            // Add "Profit" caption
+            let caption2 = w.addText('Net Earnings');
             caption2.font = Font.semiboldSystemFont(12);
             caption2.textColor = uniText;
-            // Add unclaimed fees value
-            let value2 = w.addText(`$${financialFormat(unclaimedFeesUSD)}`);
+            // Add profit value
+            let value2 = w.addText(`${profitUSD < 0 ? '-' : ''}$${financialFormat(Math.abs(profitUSD))}`);
             value2.font = Font.mediumSystemFont(22);
             value2.minimumScaleFactor = 0.5;
-            value2.textColor = uniFees;
+            value2.textColor = profitUSD < 0 ? uniNegativeFees : uniPositiveFees;
             w.addSpacer();
-            let footnote = w.addText(`${financialFormat(currentPrice)} ${currentPriceUnitDescription}`);
-            footnote.font = Font.footnote();
+            let range = w.addStack();
+            range.centerAlignContent();
+            let lower = range.addText(financialFormat(lowerTickPrice));
+            lower.font = Font.mediumSystemFont(8);
+            lower.minimumScaleFactor = 0.5;
+            lower.lineLimit = 1;
+            lower.textColor = uniText;
+            range.addSpacer();
+            let footnote = range.addText(`${financialFormat(currentPrice)}`);
+            footnote.font = Font.semiboldSystemFont(10);
             footnote.minimumScaleFactor = 0.5;
             footnote.lineLimit = 1;
             footnote.textColor = uniText;
+            range.addSpacer();
+            let upper = range.addText(financialFormat(upperTickPrice));
+            upper.font = Font.mediumSystemFont(8);
+            upper.minimumScaleFactor = 0.5;
+            upper.lineLimit = 1;
+            upper.textColor = uniText;
+            const rdtf = new RelativeDateTimeFormatter();
+            rdtf.useNumericDateTimeStyle();
+            let footnote2 = w.addText(`${currentPriceUnitDescription}, minted ${rdtf.string(new Date(createdTimestamp * 1000), new Date())}.\nGains +$${financialFormat(averageEarningsPerDayUSD)}/d on average.`);
+            //footnote2.font = Font.caption2();
+            footnote2.font = Font.systemFont(8);
+            footnote2.minimumScaleFactor = 0.5;
+            footnote2.lineLimit = 2;
+            footnote2.textColor = uniText;
             return w;
         }
     };
@@ -69,29 +113,27 @@
     function financialFormat(n) {
         return n.toLocaleString(undefined, { 'minimumFractionDigits': 2, 'maximumFractionDigits': 2 });
     }
-    async function getUSDCPrice() {
+    async function getETHPriceForTimestamp(timestamp) {
+        console.log('timestamp: ' + timestamp);
         const res = await GraphQL('https://api.thegraph.com/subgraphs/name/uniswap/uniswap-v3', `{
-    pool(id: "0x8ad599c3a0ff1de082011efddc58f1908eb6e6d8") {
-      token0 {
+    tokenHourDatas(first: 1,  where: { periodStartUnix_lt: ${timestamp}, token: "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2"}, orderBy: periodStartUnix, orderDirection: desc) {
+      periodStartUnix
+      token {
         name
         symbol
-        derivedETH
       }
-      token1 {
-        name
-        symbol
-        derivedETH
-      }
+      priceUSD
     }
   }`);
-        return 1 / res.data.pool.token0.derivedETH;
+        return Number(res.data.tokenHourDatas[0].priceUSD);
     }
     async function calculateUniswapPositionData(positionID) {
-        const ethFiatExchangeRate = await getUSDCPrice();
         const data = await getUniswapPositionData(positionID);
+        // calculate ETH price USD
+        const ethPriceUSD = Number(data.bundle.ethPriceUSD);
         // calculate liquidity
-        const liquidityUSD = (Number(data.position.depositedToken0) * Number(data.position.token0.derivedETH) * ethFiatExchangeRate)
-            + (Number(data.position.depositedToken1) * Number(data.position.token1.derivedETH) * ethFiatExchangeRate);
+        const liquidityUSD = (Number(data.position.depositedToken0) * Number(data.position.token0.derivedETH) * ethPriceUSD)
+            + (Number(data.position.depositedToken1) * Number(data.position.token1.derivedETH) * ethPriceUSD);
         // calculate unclaimed fees
         // sincere thanks to: 
         // - https://ethereum.stackexchange.com/a/109484
@@ -113,8 +155,8 @@
             };
         })();
         // calculate unclaimed fees (USD)
-        const unclaimedFeesUSD = (Number(unclaimedFeesToken0) * Number(data.position.token0.derivedETH) * ethFiatExchangeRate)
-            + (Number(unclaimedFeesToken1) * Number(data.position.token1.derivedETH) * ethFiatExchangeRate);
+        const unclaimedFeesUSD = (Number(unclaimedFeesToken0) * Number(data.position.token0.derivedETH) * ethPriceUSD)
+            + (Number(unclaimedFeesToken1) * Number(data.position.token1.derivedETH) * ethPriceUSD);
         // calculate price boundaries
         const { lowerTickPrice, upperTickPrice, currentPrice, currentPriceUnitDescription } = (() => {
             const shouldUseToken1 = Number(data.position.pool.token0Price) < Number(data.position.pool.token1Price);
@@ -137,7 +179,18 @@
         })();
         // calculate if position is closed
         const inRange = currentPrice > lowerTickPrice && currentPrice < upperTickPrice;
+        // calculate gas cost to create
+        const { timestamp, gasUsed, gasPrice } = data.position.transaction;
+        const ethFiatExchangeRateOnCreation = await getETHPriceForTimestamp(timestamp);
+        const gasCostToCreateUSD = (Number(gasPrice) * 10e-10 * 10e-10) * Number(gasUsed) * ethFiatExchangeRateOnCreation;
+        const createdTimestamp = Number(timestamp);
+        // calculate profit
+        const profitUSD = unclaimedFeesUSD - gasCostToCreateUSD;
+        // calculate average earnings per day
+        const daysSinceCreation = (new Date().valueOf() - (createdTimestamp * 1000)) / (1000 * 3600 * 24);
+        const averageEarningsPerDayUSD = unclaimedFeesUSD / daysSinceCreation;
         return {
+            ethPriceUSD,
             liquidityUSD,
             unclaimedFeesUSD,
             unclaimedFeesToken0,
@@ -147,25 +200,39 @@
             currentPrice,
             currentPriceUnitDescription,
             inRange,
+            createdTimestamp,
+            gasCostToCreateUSD,
+            profitUSD,
+            averageEarningsPerDayUSD,
         };
     }
     async function getUniswapPositionData(positionID) {
         return (await GraphQL('https://api.thegraph.com/subgraphs/name/uniswap/uniswap-v3', `{
+    bundle(id: "1" ) {
+      ethPriceUSD
+    }
     position(id:${positionID}) {
       liquidity
       depositedToken0
       depositedToken1
       feeGrowthInside0LastX128
       feeGrowthInside1LastX128
+      transaction {
+        timestamp
+        gasUsed
+        gasPrice
+      }
       token0 {
         symbol
         name
         decimals
+        derivedETH
       }
       token1 {
         symbol
         name
         decimals
+        derivedETH
       }
       pool {
         token0Price
