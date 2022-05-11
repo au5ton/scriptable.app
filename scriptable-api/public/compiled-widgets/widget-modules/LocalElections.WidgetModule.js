@@ -28,91 +28,16 @@
             // extract user data
             const positionID = parseWidgetParameter(params.widgetParameter);
             // get interesting data
-            const { liquidityUSD, profitUSD, currentPrice, currentPriceUnitDescription, createdTimestamp, inRange, lowerTickPrice, upperTickPrice, averageEarningsPerDayUSD } = await calculateUniswapPositionData(positionID);
-            const uniBackground = new Color('#191b1f', 1);
-            const uniText = new Color('#ffffff', 1);
-            const uniPositiveFees = new Color('#27ae60', 1);
-            const uniNegativeFees = new Color('#dc3545', 1);
+            await calculateUniswapPositionData(positionID);
             let w = new ListWidget();
-            w.backgroundColor = uniBackground;
-            w.useDefaultPadding();
-            // Add "liquidity" caption
-            let topRow = w.addStack();
-            let caption1 = topRow.addText('Liquidity');
-            caption1.font = Font.semiboldSystemFont(12);
-            caption1.textColor = uniText;
-            topRow.addSpacer();
-            if (inRange) {
-                let symbol = topRow.addImage(SFSymbol.named('circle.fill').image);
-                symbol.tintColor = uniPositiveFees;
-                symbol.imageSize = new Size(16, 16);
-            }
-            else {
-                let symbol = topRow.addImage(SFSymbol.named('circle.fill').image);
-                symbol.tintColor = uniNegativeFees;
-                symbol.imageSize = new Size(16, 16);
-            }
-            // Add liquidity value
-            let value1 = w.addText(`$${financialFormat(liquidityUSD)}`);
-            value1.font = Font.mediumSystemFont(18);
-            value1.minimumScaleFactor = 0.5;
-            value1.textColor = uniText;
-            w.addSpacer();
-            // // Add "unclaimed fees" caption
-            // let caption2 = w.addText('Unclaimed fees');
-            // caption2.font = Font.semiboldSystemFont(12);
-            // caption2.textColor = uniText;
-            // // Add unclaimed fees value
-            // let value2 = w.addText(`$${financialFormat(unclaimedFeesUSD)}`);
-            // value2.font = Font.mediumSystemFont(22);
-            // value2.minimumScaleFactor = 0.5;
-            // value2.textColor = uniPositiveFees;
-            // Add "Profit" caption
-            let caption2 = w.addText('Net Earnings');
-            caption2.font = Font.semiboldSystemFont(12);
-            caption2.textColor = uniText;
-            // Add profit value
-            let value2 = w.addText(`${profitUSD < 0 ? '-' : ''}$${financialFormat(Math.abs(profitUSD))}`);
-            value2.font = Font.mediumSystemFont(22);
-            value2.minimumScaleFactor = 0.5;
-            value2.textColor = profitUSD < 0 ? uniNegativeFees : uniPositiveFees;
-            w.addSpacer();
-            let range = w.addStack();
-            range.centerAlignContent();
-            let lower = range.addText(financialFormat(lowerTickPrice));
-            lower.font = Font.mediumSystemFont(8);
-            lower.minimumScaleFactor = 0.5;
-            lower.lineLimit = 1;
-            lower.textColor = uniText;
-            range.addSpacer();
-            let footnote = range.addText(`${financialFormat(currentPrice)}`);
-            footnote.font = Font.semiboldSystemFont(10);
-            footnote.minimumScaleFactor = 0.5;
-            footnote.lineLimit = 1;
-            footnote.textColor = uniText;
-            range.addSpacer();
-            let upper = range.addText(financialFormat(upperTickPrice));
-            upper.font = Font.mediumSystemFont(8);
-            upper.minimumScaleFactor = 0.5;
-            upper.lineLimit = 1;
-            upper.textColor = uniText;
-            const rdtf = new RelativeDateTimeFormatter();
-            rdtf.useNumericDateTimeStyle();
-            let footnote2 = w.addText(`${currentPriceUnitDescription}, minted ${rdtf.string(new Date(createdTimestamp * 1000), new Date())}.\nGains +$${financialFormat(averageEarningsPerDayUSD)}/d on average.`);
-            //footnote2.font = Font.caption2();
-            footnote2.font = Font.systemFont(8);
-            footnote2.minimumScaleFactor = 0.5;
-            footnote2.lineLimit = 2;
-            footnote2.textColor = uniText;
+            //w.backgroundColor = uniBackground;
+            w.addText("Hello");
             return w;
         }
     };
     const parseWidgetParameter = (param) => {
         return param;
     };
-    function financialFormat(n) {
-        return n.toLocaleString(undefined, { 'minimumFractionDigits': 2, 'maximumFractionDigits': 2 });
-    }
     async function getETHPriceForTimestamp(timestamp) {
         const res = await GraphQL('https://api.thegraph.com/subgraphs/name/uniswap/uniswap-v3', `{
     tokenHourDatas(first: 1,  where: { periodStartUnix_lt: ${timestamp}, token: "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2"}, orderBy: periodStartUnix, orderDirection: desc) {

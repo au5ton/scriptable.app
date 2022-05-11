@@ -1,10 +1,11 @@
 (function () {
 
     /** makes debugging JSON responses easier when something goes wrong */
-    async function getJSON(path) {
+    async function getJSON(path, headers = {}) {
         const req = new Request(path);
         req.headers = {
-            Accept: 'application/json'
+            Accept: 'application/json',
+            ...headers
         };
         let res = '';
         try {
