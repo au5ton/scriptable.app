@@ -5,10 +5,11 @@ export const RequestWithTimeout = (url: string, timeoutSeconds = 5) => {
 }
 
 /** makes debugging JSON responses easier when something goes wrong */
-export async function getJSON<T = any>(path: string) {
+export async function getJSON<T = any>(path: string, headers: any = {}) {
   const req = new Request(path);
   req.headers = {
-    Accept: 'application/json'
+    Accept: 'application/json',
+    ...headers
   };
   let res = '';
   try {
@@ -47,3 +48,4 @@ export async function GraphQL<T = any>(path: string, query: string): Promise<Gra
         `- Body:\n${res}`;
   }
 }
+
